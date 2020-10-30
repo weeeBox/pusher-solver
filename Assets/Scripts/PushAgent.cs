@@ -1,21 +1,26 @@
-﻿using Unity.MLAgents;
+﻿using System;
+using Unity.MLAgents;
 using Unity.MLAgents.Sensors;
 using UnityEngine;
-
 
 [RequireComponent(typeof(GameLevel))]
 public class PushAgent : Agent
 {
-    private const int ACTION_UP = 1;
-    private const int ACTION_DOWN = 2;
-    private const int ACTION_LEFT = 3;
-    private const int ACTION_RIGHT = 4;
-
+    private const int ACTION_UP = 0;
+    private const int ACTION_DOWN = 1;
+    private const int ACTION_LEFT = 2;
+    private const int ACTION_RIGHT = 3;
+    
     private GameLevel _level;
 
     public override void Initialize()
     {
         _level = gameObject.GetComponent<GameLevel>();
+    }
+
+    private void Update()
+    {
+        RequestDecision();
     }
 
     public override void OnEpisodeBegin()
@@ -25,7 +30,7 @@ public class PushAgent : Agent
 
     public override void Heuristic(float[] actionsOut)
     {
-        int action = 0;
+        int action = -1;
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
             action = ACTION_UP;
@@ -48,26 +53,42 @@ public class PushAgent : Agent
 
     public override void CollectObservations(VectorSensor sensor)
     {
-        base.CollectObservations(sensor);
+        // player pos (2)
+        sensor.AddObservation(_level.playerI);
+        sensor.AddObservation(_level.playerJ);
+
+        // level state (11x8)
+        for (int i = 0; i < _level.rows; ++i)
+        {
+            for (int j = 0; j < _level.cols; ++j)
+            {
+                sensor.AddObservation((int) _level[i, j]);
+            }
+        }
     }
 
     public override void OnActionReceived(float[] vectorAction)
     {
         int action = Mathf.RoundToInt(vectorAction[0]);
+        bool changed = false;
         switch (action)
         {
             case ACTION_UP:
-                _level.MoveUp();
+                changed = _level.MoveUp();
                 break;
             case ACTION_DOWN:
-                _level.MoveDown();
+                changed = _level.MoveDown();
                 break;
             case ACTION_LEFT:
-                _level.MoveLeft();
+                changed = _level.MoveLeft();
                 break;
             case ACTION_RIGHT:
-                _level.MoveRight();
+                changed = _level.MoveRight();
                 break;
+        }
+        if (changed)
+        {
+            AddReward(0.01f);
         }
     }
 }

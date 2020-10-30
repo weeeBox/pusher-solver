@@ -5,23 +5,18 @@ using UnityEngine;
 [Serializable]
 public class GameLevelPrefabs
 {
-    [SerializeField]
-    public Transform player;
+    [SerializeField] public Transform player;
 
-    [SerializeField]
-    public Transform block;
+    [SerializeField] public Transform block;
 
-    [SerializeField]
-    public Transform wall;
+    [SerializeField] public Transform wall;
 
-    [SerializeField]
-    public Transform goal;
+    [SerializeField] public Transform goal;
 }
 
 public class GameLevel : MonoBehaviour
 {
-    [SerializeField]
-    private GameLevelPrefabs _prefabs;
+    [SerializeField] private GameLevelPrefabs _prefabs;
 
     private Level _initialLevel;
     private Level _level;
@@ -49,28 +44,28 @@ public class GameLevel : MonoBehaviour
         _goals = new List<Transform>();
         _player = Instantiate(_prefabs.player);
 
-        _initialLevel = Level.FromPattern(pattern); 
+        _initialLevel = Level.FromPattern(pattern);
         ResetLevel();
     }
 
-    public void MoveUp()
+    public bool MoveUp()
     {
-        Move(-1, 0);
+        return Move(-1, 0);
     }
 
-    public void MoveDown()
+    public bool MoveDown()
     {
-        Move(1, 0);
+        return Move(1, 0);
     }
 
-    public void MoveLeft()
+    public bool MoveLeft()
     {
-        Move(0, -1);
+        return Move(0, -1);
     }
 
-    public void MoveRight()
+    public bool MoveRight()
     {
-        Move(0, 1);
+        return Move(0, 1);
     }
 
     public void ResetLevel()
@@ -78,10 +73,20 @@ public class GameLevel : MonoBehaviour
         level = _initialLevel;
     }
 
-    private void Move(int di, int dj)
+    private bool Move(int di, int dj)
     {
+        var oldLevel = level;
         level = level.Move(di, dj);
+        return oldLevel != level;
     }
+
+    public BlockType this[int i, int j] => _level[i, j];
+
+    public int playerI => _level.playerI;
+    public int playerJ => _level.playerJ;
+
+    public int rows => _level.rows;
+    public int cols => _level.cols;
 
     private Level level
     {
